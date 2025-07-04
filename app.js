@@ -89,7 +89,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
     const { amount, type, metadata } = req.body;
 
     const intent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(Number(amount) * 100), // Convert to cents
         currency: "usd",
         payment_method_types: ["card_present"],
         // capture_method: "manual",

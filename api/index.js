@@ -175,4 +175,4 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
 
 // Start server
 // app.listen(4242, () => console.log("Server running on http://localhost:4242"));
-module.exports.handler = serverless(app);
+module.exports = serverless(app);

@@ -8,16 +8,16 @@ require("dotenv").config();
 
 
 
-// ✅ Wrap Stripe init in try-catch to catch key errors
-let stripe;
-try {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is not set");
-  }
-  stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-} catch (err) {
-  console.error("Stripe init failed:", err.message);
-}
+// // ✅ Wrap Stripe init in try-catch to catch key errors
+// let stripe;
+// try {
+//   if (!process.env.STRIPE_SECRET_KEY) {
+//     throw new Error("STRIPE_SECRET_KEY is not set");
+//   }
+//   stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// } catch (err) {
+//   console.error("Stripe init failed:", err.message);
+// }
 
 app.use(cors());
 

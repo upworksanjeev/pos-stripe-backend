@@ -102,6 +102,7 @@ app.get("/api/products", async (req, res) => {
 
 app.post("/api/create-payment-intent", async (req, res) => {
   const { amount, type, metadata } = req.body;
+  console.log("req.body",req.body)
 
   const parsedAmount = Number(amount);
   const amountInCents = Math.round(parsedAmount * 100);

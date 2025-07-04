@@ -6,7 +6,18 @@ const app = express();
 const { resolve } = require("path");
 require("dotenv").config();
 
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY);
+
+// ✅ Wrap Stripe init in try-catch to catch key errors
+let stripe;
+try {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not set");
+  }
+  stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+} catch (err) {
+  console.error("Stripe init failed:", err.message);
+}
 
 app.use(cors({
     origin: "http://localhost:8080"

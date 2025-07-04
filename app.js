@@ -17,7 +17,7 @@ try {
 } catch (err) {
   console.error("Stripe init failed:", err.message);
 }
-console.log("stripe",stripe,process.env.STRIPE_SECRET_KEY)
+// console.log("stripe",stripe,process.env.STRIPE_SECRET_KEY)
 app.use(cors());
 
 // app.use(express.static("public"));
@@ -87,7 +87,7 @@ app.get("/api/products", async (req, res) => {
 // Create a PaymentIntent (used by product, custom, or invoice payment)
 app.post("/api/create-payment-intent", async (req, res) => {
     const { amount, type, metadata } = req.body;
-
+console.log("Math.round(Number(amount) * 100)",Math.round(Number(amount) * 100))
     const intent = await stripe.paymentIntents.create({
         amount: Math.round(Number(amount) * 100), // Convert to cents
         currency: "usd",

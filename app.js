@@ -85,20 +85,47 @@ app.get("/api/products", async (req, res) => {
 });
 
 // Create a PaymentIntent (used by product, custom, or invoice payment)
+// app.post("/api/create-payment-intent", async (req, res) => {
+//     const { amount, type, metadata } = req.body;
+// console.log("Math.round(Number(amount) * 100)",Math.round(Number(amount) * 100))
+//     const intent = await stripe.paymentIntents.create({
+//         amount: Math.round(Number(amount) * 100), // Convert to cents
+//         currency: "usd",
+//         payment_method_types: ["card_present"],
+//         // capture_method: "manual",
+//         metadata: metadata || {},
+//     });
+
+//     res.json({ paymentIntentId: intent.id, clientSecret: intent.client_secret });
+// });
+
+
 app.post("/api/create-payment-intent", async (req, res) => {
-    const { amount, type, metadata } = req.body;
-console.log("Math.round(Number(amount) * 100)",Math.round(Number(amount) * 100))
+  const { amount, type, metadata } = req.body;
+
+  const parsedAmount = Number(amount);
+  const amountInCents = Math.round(parsedAmount * 100);
+
+  // Validate the amount
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({ error: "Invalid amount provided." });
+  }
+
+  try {
     const intent = await stripe.paymentIntents.create({
-        amount: Math.round(Number(amount) * 100), // Convert to cents
-        currency: "usd",
-        payment_method_types: ["card_present"],
-        // capture_method: "manual",
-        metadata: metadata || {},
+      amount: amountInCents, // amount in cents
+      currency: "usd",
+      // capture_method: "manual",
+      payment_method_types: ["card_present"],
+      metadata: metadata || {},
     });
 
     res.json({ paymentIntentId: intent.id, clientSecret: intent.client_secret });
+  } catch (err) {
+    console.error("Stripe error:", err);
+    res.status(500).json({ error: "Failed to create payment intent." });
+  }
 });
-
 // Send the PaymentIntent to the reader
 app.post("/api/process-payment", async (req, res) => {
     const { readerId, paymentIntentId } = req.body;

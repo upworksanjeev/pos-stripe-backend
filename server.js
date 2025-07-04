@@ -13,7 +13,9 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from Express on Vercel!" });
+});
 app.get("/test",(req,res)=>{
     res.send("Deployed")
 })

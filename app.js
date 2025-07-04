@@ -20,7 +20,7 @@ try {
 // console.log("stripe",stripe,process.env.STRIPE_SECRET_KEY)
 app.use(cors());
 
-// app.use(express.static("public"));
+app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -100,6 +100,8 @@ app.get("/api/products", async (req, res) => {
 // });
 
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.post("/api/create-payment-intent", async (req, res) => {
   const { amount, type, metadata } = req.body;
   console.log("req.body",req.body)
@@ -184,10 +186,7 @@ app.get("/api/customers", async (req, res) => {
 });
 
   // List open invoices
-app.get("/api/invoices", async (req, res) => {
-  console.log('====================================');
-  console.log("TEST");
-  console.log('====================================');
+app.get("/api/invoices", async (req, res) => {;
     const invoices = await stripe.invoices.list({ limit: 20 });
     res.json(invoices.data);
 });

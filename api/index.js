@@ -174,7 +174,9 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
     res.json({ paymentIntentId: intent.id });
 });
   
-
+app.get("/",(req,res)=>{
+    res.send("Deployed")
+})
 // Start server
 // app.listen(4242, () => console.log("Server running on http://localhost:4242"));
 module.exports = serverless(app);

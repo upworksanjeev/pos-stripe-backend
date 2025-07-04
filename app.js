@@ -20,6 +20,21 @@ try {
 // console.log("stripe",stripe,process.env.STRIPE_SECRET_KEY)
 app.use(cors());
 
+app.use((req, res, next) => {
+  let data = '';
+  req.on('data', chunk => {
+    data += chunk;
+  });
+  req.on('end', () => {
+    try {
+      req.body = JSON.parse(data);
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
+    next();
+  });
+});
+
 app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

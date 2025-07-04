@@ -29,6 +29,10 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/test",(req,res)=>{
     res.send("Deployed")
 })
+
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from Express on Vercel!" });
+});
 // Create a new connection token (used by frontend Terminal SDK)
 app.post("/api/connection-token", async (req, res) => {
     const token = await stripe.terminal.connectionTokens.create();

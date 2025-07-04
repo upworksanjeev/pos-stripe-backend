@@ -17,7 +17,7 @@ try {
 } catch (err) {
   console.error("Stripe init failed:", err.message);
 }
-
+console.log("stripe",stripe,process.env.STRIPE_SECRET_KEY)
 app.use(cors());
 
 // app.use(express.static("public"));
@@ -157,6 +157,9 @@ app.get("/api/customers", async (req, res) => {
 
   // List open invoices
 app.get("/api/invoices", async (req, res) => {
+  console.log('====================================');
+  console.log("TEST");
+  console.log('====================================');
     const invoices = await stripe.invoices.list({ limit: 20 });
     res.json(invoices.data);
 });

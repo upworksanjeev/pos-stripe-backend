@@ -35,7 +35,6 @@ app.use((req, res, next) => {
 
 app.use(express.static("public"));
 
-
 app.get("/test", (req, res) => {
   res.send("Deployed");
 });
@@ -121,7 +120,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
     const intent = await stripe.paymentIntents.create({
       amount: amountInCents, // amount in cents
       currency: "usd",
-      // capture_method: "manual",
+      capture_method: "manual",
       payment_method_types: ["card_present"],
       metadata: metadata || {},
     });
@@ -152,7 +151,6 @@ app.post("/api/process-payment", async (req, res) => {
     res.status(500).json({ error: "Failed to process payment" });
   }
 });
-// boost-outdo-extol-calm
 
 // Simulate card present on test reader
 app.post("/api/simulate-payment", async (req, res) => {

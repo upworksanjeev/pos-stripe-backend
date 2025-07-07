@@ -20,6 +20,12 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+
+app.get("/test-deploy", (req, res) => {
+  res.send("Deployed");
+});
+
 // Create a new connection token (used by frontend Terminal SDK)
 app.post("/api/connection-token", async (req, res) => {
     const token = await stripe.terminal.connectionTokens.create();

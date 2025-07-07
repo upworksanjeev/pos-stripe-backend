@@ -118,7 +118,7 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(req.body, sig, "whsec_1234567890abcdef1234567890abcdef");
+        event = stripe.webhooks.constructEvent(req.body, sig, "");
     } catch (err) {
         console.error(`Webhook signature verification failed: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);

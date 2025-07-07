@@ -95,11 +95,11 @@ app.post("/api/create-payment-intent", async (req, res) => {
 
 // Send the PaymentIntent to the reader
 app.post("/api/process-payment", async (req, res) => {
-    const { reader_id, payment_intent_id } = req.body;
+    const { readerId, paymentIntentId } = req.body;
 
     try {
-        const reader = await stripe.terminal.readers.processPaymentIntent(reader_id, {
-            payment_intent: payment_intent_id,
+        const reader = await stripe.terminal.readers.processPaymentIntent(readerId, {
+            payment_intent: paymentIntentId,
         });
         res.json(reader);
     } catch (error) {

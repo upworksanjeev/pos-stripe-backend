@@ -1,9 +1,0 @@
-[build]
-command = "npm install && npm run build"
-functions = "netlify/functions"
-publish = "."
-
-[[redirects]]
-from = "/*"
-to = "/.netlify/functions/server"
-status = 200

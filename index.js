@@ -188,7 +188,6 @@ app.post("/api/create-payment-intent", async (req, res) => {
       amount: Math.round(amount * 100), // Convert to cents
       currency: "usd",
       payment_method_types: ["card_present"],
-      capture_method: "manual",
       metadata: metadata || {},
     });
 
@@ -238,6 +237,9 @@ app.post("/api/process-payment", async (req, res) => {
       readerId,
       {
         payment_intent: paymentIntentId,
+        // process_config: {
+        //   enable_customer_cancellation: true,
+        // },
       }
     );
     res.json(reader);
@@ -420,7 +422,7 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
       currency: invoice.currency,
       customer: invoice.customer,
       payment_method_types: ["card_present"],
-      capture_method: "manual",
+  
     });
     res.json({ paymentIntentId: intent.id });
   } catch (error) {
@@ -439,6 +441,49 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
     }
   }
 });
+
+app.post("/api/cancel-payment-intent", async (req, res) => {
+  try {
+    if (!stripe) {
+      return res.status(500).json({ error: "Stripe is not initialized. Please check your configuration." });
+    }
+
+    const { paymentIntentId, readerId } = req.body;
+
+    if (!paymentIntentId || !readerId) {
+      return res.status(400).json({ error: "Both paymentIntentId and readerId are required" });
+    }
+
+    // Step 1: Get the current status
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (intent.status === "succeeded") {
+      return res.status(409).json({
+        error: "Payment already succeeded and cannot be canceled",
+        status: "succeeded",
+        paymentIntent: intent,
+      });
+    }
+
+    // Step 2: Cancel reader action if it's in progress
+    const reader = await stripe.terminal.readers.cancelAction(readerId);
+    console.log("Reader action cancelled:", reader);
+
+    // Step 3: Cancel the PaymentIntent
+    const cancelledIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+    console.log("PaymentIntent cancelled:", cancelledIntent);
+
+    res.json({
+      message: "Payment canceled successfully",
+      reader,
+      cancelledIntent,
+    });
+  } catch (error) {
+    console.error("Error in cancel-payment-intent:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // Global error handler for unhandled errors
 app.use((error, req, res, next) => {

@@ -414,8 +414,6 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
 
     const invoice = await stripe.invoices.retrieve(invoiceId);
 
-
-
     if (!invoice) {
       return res.status(404).json({ error: "Invoice not found" });
     }
@@ -427,13 +425,10 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
       payment_method_types: ["card_present"],
     });
 
-   await stripe.invoices.attachPayment(
-      invoiceId,
-      {
-        payment_intent: intent.id,
-        expand: ['payments'],
-      }
-    );
+    await stripe.invoices.attachPayment(invoiceId, {
+      payment_intent: intent.id,
+      expand: ["payments"],
+    });
     res.json({ paymentIntentId: intent.id });
   } catch (error) {
     console.error("Error processing invoice payment:", error);

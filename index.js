@@ -387,8 +387,12 @@ app.get("/api/invoices", async (req, res) => {
       });
     }
 
-    const invoices = await stripe.invoices.list({ limit: 20 });
-    res.json(invoices.data);
+    const invoices = await stripe.invoices.list({ limit: 40 });
+    const sortedInvoices = invoices.data.sort((a, b) => {
+      const statusOrder = { open: 0, draft: 1, uncollectible: 2, paid: 3, void: 4 };
+      return (statusOrder[b.status] || 99) - (statusOrder[a.status] || 99);
+    });
+    res.json(sortedInvoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);
     res.status(500).json({
@@ -472,15 +476,23 @@ app.post("/api/cancel-payment-intent", async (req, res) => {
         status: "succeeded",
         paymentIntent: intent,
       });
+    }else if(
+      intent.status === "cancelled"
+    ){
+      return res.status(200).json({
+        error: "Payment already cancelled",
+        status: "succeeded",
+        paymentIntent: intent,
+      });
     }
 
     // Step 2: Cancel reader action if it's in progress
     const reader = await stripe.terminal.readers.cancelAction(readerId);
-    console.log("Reader action cancelled:", reader);
+
 
     // Step 3: Cancel the PaymentIntent
     const cancelledIntent = await stripe.paymentIntents.cancel(paymentIntentId);
-    console.log("PaymentIntent cancelled:", cancelledIntent);
+    
 
     res.json({
       message: "Payment canceled successfully",

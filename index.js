@@ -27,11 +27,9 @@ app.get("/test-deploy", (req, res) => {
 app.post("/api/connection-token", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
     const token = await stripe.terminal.connectionTokens.create();
     res.json({ secret: token.secret });
@@ -48,11 +46,9 @@ app.post("/api/connection-token", async (req, res) => {
 app.post("/api/register-reader", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     if (!req.body.registration_code) {
@@ -87,11 +83,9 @@ app.post("/api/register-reader", async (req, res) => {
 app.post("/api/create-location", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const { label, line1, city, state, country, postal_code } = req.body;
@@ -130,11 +124,9 @@ app.post("/api/create-location", async (req, res) => {
 app.get("/api/products", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const products = await stripe.products.list({ active: true, limit: 100 });
@@ -169,14 +161,20 @@ app.get("/api/products", async (req, res) => {
 app.post("/api/create-payment-intent", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const { amount, type, metadata } = req.body;
+
+    const { name, email } = metadata;
+
+    if (!name || !email) {
+      return res
+        .status(400)
+        .json({ error: "Customer email and name is required" });
+    }
 
     if (!amount || amount <= 0) {
       return res
@@ -184,11 +182,28 @@ app.post("/api/create-payment-intent", async (req, res) => {
         .json({ error: "Valid amount is required (must be greater than 0)" });
     }
 
+    const customer = await stripe.customers.create({
+      email: email,
+      name: name,
+    });
+
     const intent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency: "usd",
       payment_method_types: ["card_present"],
-      metadata: metadata || {},
+      metadata: { ...metadata, name: email } || {},
+      receipt_email: email,
+      customer: customer?.id,
+      shipping: {
+        name: name,
+        address: {
+          line1: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "",
+        },
+      },
     });
 
     res.json({
@@ -212,21 +227,17 @@ app.post("/api/create-payment-intent", async (req, res) => {
 app.post("/api/process-payment", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const { readerId, paymentIntentId } = req.body;
 
     if (!readerId) {
-      return res
-        .status(400)
-        .json({
-          error: "Reader is required please ensure reader is connected",
-        });
+      return res.status(400).json({
+        error: "Reader is required please ensure reader is connected",
+      });
     }
 
     if (!paymentIntentId) {
@@ -248,11 +259,9 @@ app.post("/api/process-payment", async (req, res) => {
     if (error.code === "resource_missing") {
       res.status(404).json({ error: "Reader or payment intent not found" });
     } else if (error.code === "terminal_reader_timeout") {
-      res
-        .status(409)
-        .json({
-          error: "Reader connection timeout please check the reader connection",
-        });
+      res.status(409).json({
+        error: "Reader connection timeout please check the reader connection",
+      });
     } else if (error.code === "terminal_reader_busy") {
       res
         .status(409)
@@ -274,11 +283,9 @@ app.post("/api/process-payment", async (req, res) => {
 app.post("/api/simulate-payment", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const { reader_id } = req.body;
@@ -355,11 +362,9 @@ app.post(
 app.get("/api/customers", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const customers = await stripe.customers.list({ limit: 20 });
@@ -377,15 +382,17 @@ app.get("/api/customers", async (req, res) => {
 app.get("/api/invoices", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
-    const invoices = await stripe.invoices.list({ limit: 20 });
-    res.json(invoices.data);
+    const invoices = await stripe.invoices.list({ limit: 40 });
+    const sortedInvoices = invoices.data.sort((a, b) => {
+      const statusOrder = { open: 0, draft: 1, uncollectible: 2, paid: 3, void: 4 };
+      return (statusOrder[b.status] || 99) - (statusOrder[a.status] || 99);
+    });
+    res.json(sortedInvoices);
   } catch (error) {
     console.error("Error fetching invoices:", error);
     res.status(500).json({
@@ -398,11 +405,9 @@ app.get("/api/invoices", async (req, res) => {
 app.post("/api/invoices/:id/pay", async (req, res) => {
   try {
     if (!stripe) {
-      return res
-        .status(500)
-        .json({
-          error: "Stripe is not initialized. Please check your configuration.",
-        });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const invoiceId = req.params.id;
@@ -422,7 +427,11 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
       currency: invoice.currency,
       customer: invoice.customer,
       payment_method_types: ["card_present"],
-  
+    });
+
+    await stripe.invoices.attachPayment(invoiceId, {
+      payment_intent: intent.id,
+      expand: ["payments"],
     });
     res.json({ paymentIntentId: intent.id });
   } catch (error) {
@@ -445,13 +454,17 @@ app.post("/api/invoices/:id/pay", async (req, res) => {
 app.post("/api/cancel-payment-intent", async (req, res) => {
   try {
     if (!stripe) {
-      return res.status(500).json({ error: "Stripe is not initialized. Please check your configuration." });
+      return res.status(500).json({
+        error: "Stripe is not initialized. Please check your configuration.",
+      });
     }
 
     const { paymentIntentId, readerId } = req.body;
 
     if (!paymentIntentId || !readerId) {
-      return res.status(400).json({ error: "Both paymentIntentId and readerId are required" });
+      return res
+        .status(400)
+        .json({ error: "Both paymentIntentId and readerId are required" });
     }
 
     // Step 1: Get the current status
@@ -463,15 +476,23 @@ app.post("/api/cancel-payment-intent", async (req, res) => {
         status: "succeeded",
         paymentIntent: intent,
       });
+    }else if(
+      intent.status === "cancelled"
+    ){
+      return res.status(200).json({
+        error: "Payment already cancelled",
+        status: "succeeded",
+        paymentIntent: intent,
+      });
     }
 
     // Step 2: Cancel reader action if it's in progress
     const reader = await stripe.terminal.readers.cancelAction(readerId);
-    console.log("Reader action cancelled:", reader);
+
 
     // Step 3: Cancel the PaymentIntent
     const cancelledIntent = await stripe.paymentIntents.cancel(paymentIntentId);
-    console.log("PaymentIntent cancelled:", cancelledIntent);
+    
 
     res.json({
       message: "Payment canceled successfully",
@@ -483,7 +504,6 @@ app.post("/api/cancel-payment-intent", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // Global error handler for unhandled errors
 app.use((error, req, res, next) => {

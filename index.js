@@ -72,7 +72,7 @@ app.post("/api/register-reader", async (req, res) => {
       res.status(400).json({ error: error?.message || "something went wrong" });
     } else {
       res.status(500).json({
-        error: "Failed to register reader",
+        error: error?.message || "Something went wrong failed to register reader",
         details: error.message,
       });
     }
@@ -248,9 +248,9 @@ app.post("/api/process-payment", async (req, res) => {
       readerId,
       {
         payment_intent: paymentIntentId,
-        // process_config: {
-        //   enable_customer_cancellation: true,
-        // },
+        process_config: {
+          enable_customer_cancellation: true,
+        },
       }
     );
     res.json(reader);
